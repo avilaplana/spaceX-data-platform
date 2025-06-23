@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.airflow.scheduler.replicas }}
+  selector:
+    matchLabels:
+      app: airflow-scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow-scheduler
+    spec:
+      initContainers:
+      - name: copy-dags
+        image: busybox
+        command: ['sh', '-c', 'cp /tmp-dags/* /opt/airflow/dags/']
+        volumeMounts:
+        - name: dags-configmap
+          mountPath: /tmp-dags
+        - name: dags-volume
+          mountPath: /opt/airflow/dags
+      containers:
+      - name: scheduler
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["airflow", "scheduler"]
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        resources:
+          requests:
+            memory: {{ .Values.airflow.scheduler.resources.requests.memory }}
+            cpu: {{ .Values.airflow.scheduler.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.airflow.scheduler.resources.limits.memory }}
+            cpu: {{ .Values.airflow.scheduler.resources.limits.cpu }}
+        volumeMounts:
+        - name: dags-volume
+          mountPath: {{ .Values.dags.mountPath }}
+        - name: logs
+          mountPath: /opt/airflow/logs
+        - name: plugins
+          mountPath: /opt/airflow/plugins
+      volumes:
+      - name: dags-configmap
+        configMap:
+          name: {{ .Values.dags.configMapName }}
+      - name: dags-volume
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: airflow-dags-pv
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      - name: logs
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: airflow-logs
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      - name: plugins
+        emptyDir: {} 

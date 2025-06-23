@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: airflow-init
+  namespace: {{ .Release.Namespace }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: init
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["sh", "-c"]
+        args:
+        - |
+          airflow db upgrade
+          airflow users create \
+            --username {{ .Values.admin.username }} \
+            --firstname {{ .Values.admin.firstname }} \
+            --lastname {{ .Values.admin.lastname }} \
+            --role {{ .Values.admin.role }} \
+            --email {{ .Values.admin.email }} \
+            --password {{ .Values.admin.password }}
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+      restartPolicy: OnFailure
+  backoffLimit: 4

@@ -1,0 +1,40 @@
+apiVersion: kubegres.reactive-tech.io/v1
+kind: Kubegres
+metadata:
+  name: {{ .Values.postgresql.kubegres.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "postgres-spacex.labels" . | nindent 4 }}
+spec:
+  image: {{ .Values.postgresql.image }}
+  replicas: {{ .Values.postgresql.replicas }}
+  port: {{ .Values.postgresql.port }}
+  database:
+    size: {{ .Values.postgresql.database.size }}
+    storageClassName: {{ .Values.postgresql.database.storageClassName }}
+    volumeMount: {{ .Values.postgresql.database.volumeMount }}
+  env:
+    {{- range $key, $value := .Values.postgresql.env }}
+    - name: {{ $key }}
+      value: {{ $value | quote }}
+    {{- end }}
+  {{- if .Values.resources }}
+  resources:
+    {{- toYaml .Values.resources | nindent 4 }}
+  {{- end }}
+  {{- if .Values.securityContext }}
+  securityContext:
+    {{- toYaml .Values.securityContext | nindent 4 }}
+  {{- end }}
+  {{- if .Values.nodeSelector }}
+  nodeSelector:
+    {{- toYaml .Values.nodeSelector | nindent 4 }}
+  {{- end }}
+  {{- if .Values.tolerations }}
+  tolerations:
+    {{- toYaml .Values.tolerations | nindent 4 }}
+  {{- end }}
+  {{- if .Values.affinity }}
+  affinity:
+    {{- toYaml .Values.affinity | nindent 4 }}
+  {{- end }} 

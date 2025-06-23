@@ -1,0 +1,71 @@
+{{- if .Values.init.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.init.job.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "postgres-spacex.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        {{- include "postgres-spacex.labels" . | nindent 8 }}
+    spec:
+      {{- if .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: init-db
+          image: {{ .Values.init.job.image }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              until pg_isready -h {{ .Values.init.database.host }} -p {{ .Values.init.database.port }}; do
+                echo "Waiting for DB...";
+                sleep 2;
+              done
+              echo "DB is ready, running script..."
+              sh /init/init-sql.sh
+          env:
+            - name: PGPASSWORD
+              value: {{ .Values.init.database.password | quote }}
+          volumeMounts:
+            - name: init-sql
+              mountPath: /init
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.securityContext }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- end }}
+      restartPolicy: {{ .Values.init.job.restartPolicy }}
+      volumes:
+        - name: init-sql
+          configMap:
+            name: {{ include "postgres-spacex.fullname" . }}-script
+      {{- if .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+{{- end }} 

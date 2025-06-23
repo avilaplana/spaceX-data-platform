@@ -1,0 +1,17 @@
+apiVersion: v2
+name: postgres-spacex
+description: A Helm chart for PostgreSQL with SpaceX data schema using Kubegres
+type: application
+version: 0.1.0
+appVersion: "15"
+keywords:
+  - postgresql
+  - kubegres
+  - spacex
+  - database
+home: https://github.com/your-repo/postgres-spacex
+sources:
+  - https://github.com/your-repo/postgres-spacex
+maintainers:
+  - name: Alvaro Vilaplana Garcia
+    email: alvaro.vilaplana@gmail.com

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.dags.configMapName }}
+  namespace: {{ .Release.Namespace }}
+data:
+  spacex_etl_dag.py: |
+{{ .Files.Get "scripts/spacex_etl_dag.py" | indent 4 }} 

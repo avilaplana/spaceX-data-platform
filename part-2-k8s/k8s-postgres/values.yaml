@@ -1,0 +1,92 @@
+# Default values for postgres-spacex
+# This is a YAML-formatted file.
+
+# Global settings
+global:
+  namespaceOverride: ""
+  nameOverride: ""
+
+# PostgreSQL configuration
+postgresql:
+  image: "postgres:15"
+  replicas: 1
+  port: 5432
+  
+  # Database configuration
+  database:
+    size: "1Gi"
+    storageClassName: "standard"
+    volumeMount: "/var/lib/postgresql/data"
+  
+  # Environment variables
+  env:
+    POSTGRES_PASSWORD: "mysecretpassword"
+    POSTGRES_REPLICATION_PASSWORD: "replicationSecret"
+  
+  # Kubegres specific settings
+  kubegres:
+    name: "my-postgres"
+    # Additional Kubegres configuration can be added here
+
+# Database initialization
+init:
+  enabled: true
+  job:
+    name: "init-db-job"
+    image: "postgres:15"
+    restartPolicy: "OnFailure"
+  
+  # Database connection settings
+  database:
+    name: "spacex_data"
+    host: "my-postgres"
+    port: 5432
+    user: "postgres"
+    password: "mysecretpassword"
+
+# Service configuration
+service:
+  type: "ClusterIP"
+  port: 5432
+
+# Ingress configuration (optional)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# Resources configuration
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# Security context (container-level)
+securityContext:
+  runAsUser: 999
+  runAsGroup: 999
+
+# Pod security context (pod-level)
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {} 

@@ -1,0 +1,33 @@
+Airflow has been successfully installed!
+
+**Quick Access:**
+   # Option 1: Use minikube service (recommended)
+   minikube service airflow-webserver -n {{ .Release.Namespace }}
+
+   # Option 2: Use port-forward
+   kubectl port-forward -n {{ .Release.Namespace }} svc/airflow-webserver {{ .Values.airflow.webserver.port }}:{{ .Values.airflow.webserver.port }}
+   Then access: http://localhost:{{ .Values.airflow.webserver.port }}
+
+**Login Credentials:**
+   Username: {{ .Values.admin.username }}
+   Password: {{ .Values.admin.password }}
+
+**Check Status:**
+   kubectl get pods -n {{ .Release.Namespace }}
+   kubectl get svc -n {{ .Release.Namespace }}
+
+**Useful Commands:**
+   # View logs
+   kubectl logs -n {{ .Release.Namespace }} deployment/airflow-webserver
+   kubectl logs -n {{ .Release.Namespace }} deployment/airflow-scheduler
+
+   # Upgrade chart
+   helm upgrade airflow . -n {{ .Release.Namespace }}
+
+   # Uninstall
+   helm uninstall airflow -n {{ .Release.Namespace }}
+
+**Database:**
+   Connected to PostgreSQL at: {{ .Values.database.host }}.{{ .Values.database.namespace }}.svc.cluster.local:{{ .Values.database.port }}/{{ .Values.database.name }}
+
+Happy orchestrating!

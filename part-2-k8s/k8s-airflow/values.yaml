@@ -1,0 +1,75 @@
+# Airflow Helm Chart Values
+
+# Image configuration
+image:
+  repository: etl-airflow
+  tag: latest
+  pullPolicy: Never
+
+# Database configuration
+database:
+  host: my-postgres
+  port: 5432
+  name: spacex_data
+  user: postgres
+  password: mysecretpassword
+  namespace: interview
+
+# Airflow configuration
+airflow:
+  webserver:
+    port: 8080
+    replicas: 1
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "2"
+      limits:
+        memory: "8Gi"
+        cpu: "4"
+    service:
+      type: NodePort
+      nodePort: 30080
+  
+  scheduler:
+    replicas: 1
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "2"
+      limits:
+        memory: "8Gi"
+        cpu: "4"
+
+# DAGs configuration
+dags:
+  mountPath: /opt/airflow/dags
+  configMapName: airflow-dags
+
+# Persistent Volume configuration
+persistence:
+  enabled: true
+  storageClass: ""
+  logs:
+    size: 1Gi
+    accessMode: ReadWriteMany
+  dags:
+    size: 500Mi
+    accessMode: ReadWriteMany
+
+# Environment variables for DAGs
+env:
+  POSTGRES_HOST: my-postgres.interview.svc.cluster.local
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: spacex_data
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: mysecretpassword
+
+# Admin user configuration
+admin:
+  username: admin
+  password: password
+  firstname: Admin
+  lastname: User
+  email: admin@example.com
+  role: Admin 
